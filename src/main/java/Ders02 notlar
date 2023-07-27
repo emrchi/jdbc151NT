@@ -1,0 +1,194 @@
+2.GUN:
+ResultSet
+While(rs.next()){
+Int x=rs.getInt(“a”);
+String s=rs.getString(“b”);
+Float f=rs.getFloat(“c”);
+}
+pgAdmin’de bir query actik.
+--2.Ornek: "region_id"nin 2'den buyuk oldugu "country_id" ve "country_name" degerlerini cagirin.
+SELECT * FROM countries
+SELECT * FROM country_id, country_name FROM countries WHERE region_id>2;
+Daha sonra intellij’de classimiza giderek
+String sql2= “SELECT * FROM country_id, country_name FROM countries WHERE region_id>2”;
+ResultSet resultSet2=statement.executeQuery(sql2);
+Ekranda Australia goruldu.
+//resultSet2.next();
+ //System.out.println(resultSet2.getString(2)); Boyle tek tek yazmayalim tumunu alalim diye kodumuza
+       //asagidaki sekilde devam ettik.
+       while(resultSet2.next()){//ResultSet son satira gelip false verdikten sonra kapanir
+           //Kapali ResultSet uzerinde islem yapilirsa exeption atar.
+           System.out.println(resultSet2.getString(1)+"--"+resultSet2.getString(2));//getString
+           //parantezi icindeki 1 ve 2, 1. satir ve 2.satir'i getir demek oluyor. 1. Satirda Australia var.
+  Kodumuzu run edince console’da   gordugumuz:
+AU –Australia next() method ile ilk satir gosterilince ancak bu satir uzerinde calisabiliriz.
+CN --China
+EG --Egypt
+IL --Israel
+IN --India
+JP --Japan
+KW --Kuwait
+ML --Malaysia
+NG --Nigeria
+SG --Singapore
+ZM --Zambia
+ZW --Zimbabwe
+Next() method bir kere calisinca birinci loop’da birinci satirda olacak yani Australia
+Sonraki next() ile bir sonraki satira gelecek. While icindeki sartimiz ile next() method calismaya devam edecek.
+Biz bir onceki ornekde kullandigimiz ResultSet ile calisirsak bir exeption firlatilir. Cunku o ResultSet kapanmisti.
+Biz ikinci ornekde ResultSet2’yi calistirdik.
+3.Ornek icin companies table’I pgAdmin’de olusturduk
+CREATE TABLE companies
+(
+ company_id SMALLINT,
+ company VARCHAR(20),
+ number_of_employees SMALLINT
+);
+INSERT INTO companies VALUES(100, 'IBM', 12000);
+INSERT INTO companies VALUES(101, 'GOOGLE', 18000);
+INSERT INTO companies VALUES(102, 'MICROSOFT', 10000);
+INSERT INTO companies VALUES(103, 'APPLE', 21000);
+SELECT * FROM companies;
+SELECT * FROM companies WHERE number_of_employees = 10000 --degeri en dusuk satir bu
+SELECT * FROM companies WHERE number_of_employees= (SELECT MIN(number_of_employees)FROM companies);
+//Burada subquery’i bu sekilde kullandik.
+Intellij’e geri donduk ve kodumuzu pgAdmin’dekinden farkli olarak bir String’e assign ettik. String oldugu icin kodu
+cift tirnak icerisine aldik. Statement.executeQuery ile String’e assign ettigimiz datayi cagirdik.
+String sql3="SELECT * FROM companies WHERE number_of_employees= (SELECT MIN(number_of_employees)FROM companies)";
+       ResultSet resultSet3 = statement.executeQuery(sql3);
+       while (resultSet3.next()){
+           System.out.println(resultSet3.getObject(1)+"..”+resultSet3.getObject(2)+".."+resultSet3.getObject(3);
+           Console'da: 102..MICROSOFT..10000
+           getObject yazarak String ya da int ne olursa olsun tum verileri alabiliriz.
+          String sql3="SELECT * FROM companies"; yazsaydik bir satiri degil tum satirlari verirdi.
+          getString() icine company_id, getString() icine company girebilirdik. Yani satir numaralarini vermek yerine
+          sutun isimlerini de yazabilirdik.  Asagida bunun ornegini yazdik.
+           System.out.println(resultSet3.getInt("company_id")+"..”+resultSet3.getString("company"));
+           console'da: 102..MICROSOFT gorduk
+ExecuteQuery02 isimli yeni bir class actik.
+Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres",
+"kendi sifremizi girecegiz");
+       Statement statement = connection.createStatement();
+    //her classimizda ustteki kodlar ile baglantiyi saglamak zorundayiz.
+//1. Örnek: companies tablosundan en yüksek ikinci number_of_employees değeri olan company ve number_of_employees
+değerlerini çağırın.
+Tablomuzda en yuksek ikinci number_of_employees ve company GOOGLE 18000 olup bunu cagiracagiz.
+SELECT company, number_of_employees FROM companies ORDER BY number_of_employees DESC OFFSET 1 LIMIT 1// ilk en yuksegi
+offset ile atladik. Buyukten kucuge siraladigimiz satirdan ilki atladik ve ondan sonra ilk gelen satiri limit 1 ile al dedik.
+Iki satiri alsaydik limit 2 diyebilirdik.
+--ASC assending order DESC ise descending order
+pgAdmin’den kodumuzu aldik ve class’imiza geldik.
+String sql1="SELECT company, number_of_employees FROM companies ORDER BY number_of_employees DESC OFFSET 1 LIMIT 1";
+  ResultSet resultSet=statement.executeQuery(sql1);
+  resultSet.next();
+ System.out.println(resultSet.getObject(1)+ "..."+ resultSet.getObject(2));
+console'da: GOOGLE...18000’i gorduk.
+Son olarak kodumuzda while() kullandik.
+String sql1="SELECT company, number_of_employees FROM companies ORDER BY number_of_employees DESC OFFSET 1 LIMIT 1";
+    ResultSet resultSet=statement.executeQuery(sql1);
+    while(resultSet.next()){
+           System.out.println(resultSet.getObject(1) + "..." + resultSet.getObject(2));
+ Bu 1.YOL idi.
+2.YOL:
+CREATE TABLE companies
+(
+ company_id SMALLINT,
+ company VARCHAR(20),
+ number_of_employees SMALLINT
+);
+INSERT INTO companies VALUES(100, 'IBM', 12000);
+INSERT INTO companies VALUES(101, 'GOOGLE', 18000);
+INSERT INTO companies VALUES(104, 'CASPER', 18000);
+INSERT INTO companies VALUES(102, 'MICROSOFT', 10000);
+INSERT INTO companies VALUES(103, 'APPLE', 21000);
+SELECT * FROM companies;
+pgAdminde SQL komutlarimizi en yuksek iki degeri almak icin yazacagimiz kodda kullandik.
+SELECT company, number_of_employees FROM companies WHERE number_of_employees=10000
+--bu kod bize companies'den iki satiri verecek. Biz en yuksek iki tane ikinci degeri isteyebiliriz.
+--bu durumda subquery kullanabiliriz. max() ile en yuksek degeri buluyorduk ve maximumdan kucuk ikinci
+--degeri bulursak iki en yuksek degeri alabiliriz.
+SELECT MAX(number_of_employees) FROM companies //en yuksek deger olan 21000'i bize verdi
+--ikinci maximum degeri nasil bulacagiz?
+SELECT MAX(number_of_employees) FROM companies
+WHERE number_of_employees>21000 --bize 18000'i tablomuzdaki sutundan verecek
+Where sartimiz ile en yuksek olandan kucuk olan en yuksek degeri istemis olduk.
+Daha sonra table’I yeni degerlerle yenileyince ve intellij’de kodumuzu calsitirinca iki yuksek deger olan iki 18000 ve
+company’lerini console’da gorduk.
+ Intellij’de classimiza tekrar donus yaptik.
+System.out.println("2. Yol:");
+       String sql2 = "SELECT company, number_of_employees FROM companies " +
+               "WHERE number_of_employees = (SELECT MAX(number_of_employees) FROM companies " +
+               "WHERE number_of_employees < (SELECT MAX(number_of_employees) FROM companies))";
+      ResultSet resultSet2 = statement.executeQuery(sql2);
+       while (resultSet2.next()){
+           System.out.println(resultSet2.getObject(1) + "--" + resultSet2.getObject(2));
+       }
+Console’da GOOGLE—18000
+                   CASPER—18000 gorduk.
+Son olarak her class’imiz sonuna yazmamiz gerekeni yaptik.
+connection.close();
+statement.close();
+class acik kalirsa bulut sistemi ile baglanti halinde ekstra ucret odemek zorunda kalabiliriz.
+
+
+ExecuteUpdate01 isimli yeni classimizi actik.
+ //1. Örnek: number_of_employees değeri ortalama çalışan sayısından az olan number_of_employees değerlerini 16000 olarak
+ UPDATE edin.ni bir class daha actik.
+Query’e geldik.
+--data uzerinde bir degisiklik yapacaksak update ve set kullaniriz.
+UPDATE companies SET number_of_employees=16000
+WHERE number_of_employees <(SELECT AVG(number_of_employees) FROM companies)
+Bu kod ile update yapsak da select ile bu data’yi intellij’de cagirmak zorundayiz.
+Classimiz icerisine soyle yazdik:
+ String sql ="UPDATE companies SET number_of_employees = 16000 " +
+               "WHERE number_of_employees <(SELECT AVG(number_of_employees) FROM companies)";
+       int updateEdilenSatirSayisi = statement.executeUpdate(sql);//executeUpdate() methodu update edilen satır sayısını
+       int değer olarak döner
+       System.out.println("updateEdilenSatirSayisi = " + updateEdilenSatirSayisi);//2
+       //Update sonrası datayı okumak için DQL(Select) kullanıyoruz:
+       String sql2 = "SELECT * FROM companies";
+       ResultSet resultSet = statement.executeQuery(sql2);
+       while (resultSet.next()){
+           System.out.println(resultSet.getObject(1)+"--"+resultSet.getObject(2)+"--"+resultSet.getObject(3));
+       }
+Statement.close(); yaptiktan sonra islem yaparsak console’da hata aliriz.
+Statement’i olustururken query’leri parametrelendirecegiz. Parametrelendirme ile ileride yapilacak islemler daha mumkun olacak.
+Yeni bir class actik PreparedStatement01
+Yine connection ile baglantiyi sagladik.
+//1. Örnek: Prepare statement() kullanarak company adı IBM olan number_of_employees değerini 9999 olarak güncelleyin.
+SELECT * FROM companies;
+UPDATE companies SET number_of_employees=9999 WHERE company='IBM'
+Bizden prepared statement ile intellij’de yapmamiz isteniyor.
+String sql1="UPDATE companies SET number_of_employees=9999 WHERE company='IBM'";
+Ancak biz 9999 yerine ve IBM yerine ? isareti koyarak parametrelendirmis olduk.
+//1.adim: PreparedStatement kullanarak company adi IBM olan number_of_employees degerini 9999 olarak guncelle
+String sql1="UPDATE companies SET number_of_employees=? WHERE company=?";
+//2.adim: PreparedStatement objesi olustur
+PreparedStatement preparedStatement=connection.prepareStatement(sql1);
+//3.adim:preparedStatement objesi ile setInt gibi methodlarla '?' yerine koymak istedigimiz degerleri girelim
+preparedStatement.setInt(9999); ancak 9999 yazinca birinci siraya 9999’u girer, bizim ayrica index’I girmemiz gerekli.
+preparedStatement.setInt(1,9999);
+ preparedStatement.setString(1,"IBM");
+yukarida kodumuz icerisinde iki ? var ve bu ? isaretine karsilik gelen kisim integer degerse integer deger, String bir
+deger ise String bir deger girmeliyiz.
+//4.adim: Query'yi calistir
+ int guncellenenSatirSayis=preparedStatement.executeUpdate();
+  System.out.println("guncellenenSatirSayisi= " +guncellenenSatirSayisi);
+Console’da run ettikten sonra: guncellenenSatirSayisi = 1
+//Guncelleme sonrasi yeni table'i okuyalim
+       String sql2="SELECT * FROM companies";
+       ResultSet resultSet= statement.executeQuery(sql2);
+       while(resultSet.next()){
+           System.out.println(resultSet.getObject(1)+"--"+resultSet.getObject(2)+"--"+resultSet.getObject(3));
+       }
+2. Örnek: Prepared statement kullanarak company adı CASPER olan number_of_employees değerini 5000 olarak güncelleyin.
+String sql=Update kod kismini tekrar etmemize gerek yok. Elimizde var.
+preparedStatement.setInt(1,5000);
+       preparedStatement.setString(2,"CASPER");
+       preparedStatement.setString(2,"GOOGLE");
+       int updateSayisi=preparedStatement.executeUpdate();
+       System.out.println("updateSayisi= "+ updateSayisi);
+       ResultSet resultSet2=statement.executeQuery(sql2);
+       while(resultSet2.next()){
+           System.out.println(resultSet2.getObject(1)+ "--"+resultSet2.getObject(2)+ "--" + resultSet2.getObject(3)););
+       }
